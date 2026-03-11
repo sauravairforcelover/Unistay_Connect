@@ -1,0 +1,24 @@
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import Hero from "@/components/Hero";
+import HowItWorks from "@/components/HowItWorks";
+import FeaturedProperties from "@/components/FeaturedProperties";
+import Testimonials from "@/components/Testimonials";
+
+export default function Home() {
+  return (
+    <div className="layout-container flex h-full grow flex-col">
+      <Header />
+      <div className="px-40 flex flex-1 justify-center py-5">
+        <div className="layout-content-container flex flex-col max-w-[960px] flex-1">
+          <Hero />
+          <HowItWorks />
+          <FeaturedProperties />
+          <Testimonials />
+        </div>
+      </div>
+      <Footer />
+    </div>
+  );
+}
+

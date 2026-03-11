@@ -1,0 +1,141 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  student
+  landlord
+  admin
+}
+
+enum PropertyStatus {
+  available
+  rented
+  pending
+  rejected
+}
+
+enum BookingStatus {
+  pending
+  approved
+  rejected
+  cancelled
+  completed
+}
+
+enum NotificationType {
+  booking_request
+  booking_approved
+  booking_rejected
+  message
+  property_approved
+  property_rejected
+}
+
+model User {
+  id           String    @id @default(cuid())
+  name         String
+  email        String    @unique
+  passwordHash String?
+  role         UserRole  @default(student)
+  avatar       String?
+  phone        String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // Relations
+  landlordProfile PropertyLandlord?
+  bookings        Booking[]
+  sentMessages    Message[] @relation("SentMessages")
+  receivedMessages Message[] @relation("ReceivedMessages")
+  notifications   Notification[]
+  bookmarks      Bookmark[]
+}
+
+model Property {
+  id          String         @id @default(cuid())
+  title       String
+  description String
+  price       Float
+  images      String[]
+  address     String
+  amenities   String[]
+  type        String // studio, shared, apartment, house, etc.
+  status      PropertyStatus @default(pending)
+  landlordId  String
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  // Relations
+  landlord PropertyLandlord @relation(fields: [landlordId], references: [id])
+  bookings Booking[]
+  bookmarks Bookmark[]
+}
+
+model PropertyLandlord {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+  properties Property[]
+}
+
+model Booking {
+  id         String        @id @default(cuid())
+  studentId  String
+  propertyId String
+  startDate  DateTime
+  endDate    DateTime
+  status     BookingStatus @default(pending)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  // Relations
+  student  User     @relation(fields: [studentId], references: [id])
+  property Property @relation(fields: [propertyId], references: [id])
+}
+
+model Message {
+  id         String   @id @default(cuid())
+  senderId   String
+  receiverId String
+  content    String
+  timestamp  DateTime @default(now())
+
+  // Relations
+  sender   User @relation("SentMessages", fields: [senderId], references: [id])
+  receiver User @relation("ReceivedMessages", fields: [receiverId], references: [id])
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  message   String
+  read      Boolean          @default(false)
+  createdAt DateTime          @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Bookmark {
+  id         String   @id @default(cuid())
+  userId     String
+  propertyId String
+  createdAt  DateTime @default(now())
+
+  // Relations
+  user     User     @relation(fields: [userId], references: [id])
+  property Property @relation(fields: [propertyId], references: [id])
+
+  @@unique([userId, propertyId])
+}
+
